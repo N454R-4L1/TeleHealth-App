@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% load static %}
+{% block content %}
+<h2>Video Call</h2>
+<button id="start-call">Start Call</button>
+<div id="video-container"></div>
+
+<script src="{% static 'js/video_call.js' %}"></script>
+{% endblock %}

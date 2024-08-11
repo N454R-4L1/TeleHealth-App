@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% load static %}
+{% block content %}
+<h2>Checkout</h2>
+<form method="post" action="{% url 'checkout' %}">
+    {% csrf_token %}
+    <button type="submit">Pay Now</button>
+</form>
+{% endblock %}
