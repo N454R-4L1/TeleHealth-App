@@ -1,2 +1,2 @@
-web: gunicorn telehealth.wsgi
+web: gunicorn telehealth.wsgi.application
 
