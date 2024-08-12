@@ -1,9 +1,95 @@
 {% extends "base.html" %}
 {% load static %}
+
 {% block content %}
-<h2>Checkout</h2>
-<form method="post" action="{% url 'checkout' %}">
-    {% csrf_token %}
-    <button type="submit">Pay Now</button>
-</form>
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-lg border-0">
+                <div class="card-body">
+                    <h2 class="card-title text-center mb-4">Checkout</h2>
+                    <form id="payment-form">
+                        {% csrf_token %}
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="name">Name</label>
+                                    <input type="text" class="form-control" id="name" name="name" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="email">Email</label>
+                                    <input type="email" class="form-control" id="email" name="email" required>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="address">Address</label>
+                                    <input type="text" class="form-control" id="address" name="address" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="city">City</label>
+                                    <input type="text" class="form-control" id="city" name="city" required>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="state">State</label>
+                                    <input type="text" class="form-control" id="state" name="state" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="zip">Zip</label>
+                                    <input type="text" class="form-control" id="zip" name="zip" required>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Stripe's Payment Element will be inserted here -->
+                        <div id="payment-element"></div>
+                        <button type="submit" id="submit" class="btn btn-primary btn-block mt-4">Pay Now</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://js.stripe.com/v3/"></script>
+<script>
+    const stripe = Stripe('{{ STRIPE_PUBLIC_KEY }}');  // Include your Stripe public key here
+
+    // Create an instance of Elements.
+    const elements = stripe.elements();
+
+    // Create and mount the Payment Element
+    const paymentElement = elements.create('payment');
+    paymentElement.mount('#payment-element');
+
+    // Handle form submission
+    const form = document.getElementById('payment-form');
+    form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+
+        const { error } = await stripe.confirmPayment({
+            elements,
+            confirmParams: {
+                // Make sure to change this to your payment completion page
+                return_url: '{{ success_url }}',
+            },
+        });
+
+        if (error) {
+            // Show error to your customer (e.g., insufficient funds)
+            console.log(error.message);
+        }
+    });
+</script>
 {% endblock %}

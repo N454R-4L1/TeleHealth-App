@@ -1,10 +1,166 @@
 {% extends "base.html" %}
 {% load static %}
-{% block content %}
-<h2>Chat</h2>
-<div id="chat-window"></div>
-<input type="text" id="chat-input" placeholder="Type a message">
-<button id="chat-send">Send</button>
 
-<script src="{% static 'js/chat.js' %}"></script>
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-lg border-0">
+                <div class="card-body">
+                    <h2 class="card-title text-center mb-4">Chat</h2>
+                    <div class="chat-window">
+                        <div id="chat-messages">
+                            <!-- chat messages will be displayed here -->
+                        </div>
+                        <div class="online-status">
+                            <span class="online" id="online-status">Offline</span>
+                        </div>
+                    </div>
+                    <div class="chat-input">
+                        <input type="text" id="chat-input" placeholder="Type a message">
+                        <button id="chat-send">Send</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .chat-window {
+        padding: 20px;
+        border-bottom: 1px solid #ccc;
+        height: 300px;
+        overflow-y: auto;
+    }
+
+    .chat-input {
+        padding: 20px;
+        background-color: #f7f7f7;
+        border-top: 1px solid #ccc;
+    }
+
+    #chat-input {
+        width: 80%;
+        padding: 10px;
+        font-size: 16px;
+        border: 1px solid #ccc;
+    }
+
+    #chat-send {
+        width: 20%;
+        padding: 10px;
+        font-size: 16px;
+        background-color: #4CAF50;
+        color: #fff;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+    }
+
+    #chat-send:hover {
+        background-color: #3e8e41;
+    }
+
+    .online-status {
+        padding: 10px;
+        font-size: 14px;
+        color: #666;
+    }
+
+    .online {
+        color: #4CAF50;
+    }
+
+    .offline {
+        color: #ccc;
+    }
+
+    .chat-message {
+        margin-bottom: 20px;
+    }
+
+    .chat-message .username {
+        font-weight: bold;
+        color: #4CAF50;
+    }
+
+    .chat-message .message {
+        padding: 10px;
+        background-color: #f7f7f7;
+        border-radius: 10px;
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const chatInput = document.getElementById('chat-input');
+        const chatSendButton = document.getElementById('chat-send');
+        const chatMessages = document.getElementById('chat-messages');
+        const onlineStatus = document.getElementById('online-status');
+
+        // Create WebSocket connection
+        const socket = new WebSocket('ws://your-websocket-url');
+
+        // Connection opened
+        socket.addEventListener('open', function (event) {
+            onlineStatus.textContent = 'Online';
+            onlineStatus.classList.remove('offline');
+            onlineStatus.classList.add('online');
+        });
+
+        // Connection closed
+        socket.addEventListener('close', function (event) {
+            onlineStatus.textContent = 'Offline';
+            onlineStatus.classList.remove('online');
+            onlineStatus.classList.add('offline');
+        });
+
+        // Listen for messages
+        socket.addEventListener('message', function (event) {
+            const message = JSON.parse(event.data);
+            displayMessage(message, 'other');
+        });
+
+        // Send a message when the "Send" button is clicked
+        chatSendButton.addEventListener('click', function() {
+            const messageText = chatInput.value.trim();
+            if (messageText !== '') {
+                const message = {
+                    username: 'You',  // Replace with actual username if available
+                    text: messageText
+                };
+                sendMessage(message);
+                chatInput.value = '';
+            }
+        });
+
+        // Send a message when the Enter key is pressed
+        chatInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                chatSendButton.click();
+            }
+        });
+
+        function sendMessage(message) {
+            // Send the message to the server via WebSocket
+            socket.send(JSON.stringify(message));
+
+            // Display the message in the chat window
+            displayMessage(message, 'me');
+        }
+
+        function displayMessage(message, type) {
+            const messageHTML = `
+                <div class="chat-message ${type}">
+                    <span class="username">${message.username}</span>
+                    <span class="message">${message.text}</span>
+                </div>
+            `;
+            chatMessages.innerHTML += messageHTML;
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+    });
+</script>
 {% endblock %}
