@@ -1,1 +1,2 @@
-Veersa Hackathon Telehealth WebApp
+Telehealth WebApp using Django
+ 
